@@ -45,6 +45,9 @@ public class Service extends BaseService {
     /** The current session token. */
     protected String token = null;
 
+    /** Force use of token. */
+    protected boolean forceToken = false;
+
     /** The current owner context. A value of "nobody" means that all users
      * have access to the resource.
      */
@@ -140,15 +143,16 @@ public class Service extends BaseService {
         // NOTE: Must also read the underlying dictionary for forward compatibility.
         //       (Consider the case where the user calls Map.put() directly,
         //        rather than using the new setters.)
-        this.app = Args.<String>get(args,    "app",    args.app != null    ? args.app    : null);
-        this.host = Args.<String>get(args,   "host",   args.host != null   ? args.host   : DEFAULT_HOST);
-        this.owner = Args.<String>get(args,  "owner",  args.owner != null  ? args.owner  : null);
-        this.port = Args.<Integer>get(args,  "port",   args.port != null   ? args.port   : DEFAULT_PORT);
-        this.scheme = Args.<String>get(args, "scheme", args.scheme != null ? args.scheme : DEFAULT_SCHEME);
-        this.token = Args.<String>get(args,  "token",  args.token != null  ? args.token  : null);
+        this.app = Args.get(args, "app", args.app != null ? args.app : null);
+        this.host = Args.get(args, "host", args.host != null ? args.host : DEFAULT_HOST);
+        this.owner = Args.get(args, "owner", args.owner != null ? args.owner : null);
+        this.port = Args.get(args, "port", args.port != null ? args.port : DEFAULT_PORT);
+        this.scheme = Args.get(args, "scheme", args.scheme != null ? args.scheme : DEFAULT_SCHEME);
+        this.token = Args.get(args, "token",  args.token != null ? args.token : null);
+        this.forceToken = Args.get(args, "forceToken",  args.forceToken != false ? args.forceToken : false);
         this.username = (String)args.get("username");
         this.password = (String)args.get("password");
-        this.httpsHandler = Args.<URLStreamHandler>get(args, "httpsHandler", null);
+        this.httpsHandler = Args.get(args, "httpsHandler", null);
         this.setSslSecurityProtocol(Args.get(args, "SSLSecurityProtocol", Service.getSslSecurityProtocol()));
         this.addCookie((String)args.get("cookie"));
     }
@@ -160,19 +164,20 @@ public class Service extends BaseService {
      */
     public Service(Map<String, Object> args) {
         super();
-        this.app = Args.<String>get(args, "app", null);
-        this.host = Args.<String>get(args, "host", DEFAULT_HOST);
-        this.owner = Args.<String>get(args, "owner", null);
-        this.port = Args.<Integer>get(args, "port", DEFAULT_PORT);
-        this.scheme = Args.<String>get(args, "scheme", DEFAULT_SCHEME);
-        this.token = Args.<String>get(args, "token", null);
+        this.app = Args.get(args, "app", null);
+        this.host = Args.get(args, "host", DEFAULT_HOST);
+        this.owner = Args.get(args, "owner", null);
+        this.port = Args.get(args, "port", DEFAULT_PORT);
+        this.scheme = Args.get(args, "scheme", DEFAULT_SCHEME);
+        this.token = Args.get(args, "token", null);
+        this.forceToken = Args.get(args, "forceToken", false);
         this.username = (String)args.get("username");
         this.password = (String)args.get("password");
-        this.httpsHandler = Args.<URLStreamHandler>get(args, "httpsHandler", null);
+        this.httpsHandler = Args.get(args, "httpsHandler", null);
         this.setSslSecurityProtocol(Args.get(args, "SSLSecurityProtocol", Service.getSslSecurityProtocol()));
         this.addCookie((String)args.get("cookie"));
-        this.connectTimeout = Args.<Integer>get(args, "connectTimeout", null);
-        this.readTimeout = Args.<Integer>get(args, "readTimeout", null);
+        this.connectTimeout = Args.get(args, "connectTimeout", null);
+        this.readTimeout = Args.get(args, "readTimeout", null);
     }
 
     /**
@@ -1290,6 +1295,8 @@ public class Service extends BaseService {
     @Override public ResponseMessage send(String path, RequestMessage request) {
         // cookieStore is a protected member of HttpService
         if (token != null && cookieStore.isEmpty()) {
+            request.getHeader().put("Authorization", token);
+        } else if (token != null && forceToken) {
             request.getHeader().put("Authorization", token);
         }
         return super.send(fullpath(path), request);

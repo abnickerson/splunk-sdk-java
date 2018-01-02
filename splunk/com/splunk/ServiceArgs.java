@@ -72,6 +72,11 @@ public class ServiceArgs extends Args {
     public String token = null;
 
     /**
+     * Force use of authentication token.
+     */
+    public boolean forceToken = false;
+
+    /**
      * @param app
      *      The application context of the service.
      */
@@ -147,6 +152,15 @@ public class ServiceArgs extends Args {
     public void setToken(String token) {
         this.token = token; // for backward compatibility
         this.put("token", token);
+    }
+
+    /**
+     * @param forceToken
+     *      Force use of authentication token.
+     */
+    public void setForceToken(boolean forceToken) {
+        this.forceToken = forceToken;
+        this.put("forceToken", forceToken);
     }
 
     /**
